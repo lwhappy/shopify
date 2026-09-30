@@ -7,3 +7,6 @@ boxing.zip
 .env
 .env_副本
 .env*.local
+
+# dependencies
+node_modules/
