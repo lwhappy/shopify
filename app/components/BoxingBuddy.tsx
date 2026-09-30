@@ -6,18 +6,29 @@ const FALLBACK_BASECOLOR = '/models/boxing/basic/boxing-boy-rig-basecolor.png';
 const CLOSED_BASECOLOR = '/models/boxing/basic/boxing-boy-rig-basecolor-blink.png';
 const FALLBACK_NORMAL = '/models/boxing/basic/boxing-boy-rig-normal.png';
 const MOVE_ANIMS = [
-  {key: 'punch', url: '/models/boxing/animations/punch-combo.fbx'},
-  {key: 'kick', url: '/models/boxing/animations/mma-kick.fbx'},
+  {key: 'punch', url: '/models/boxing/animations/punch-combo.glb'},
+  {key: 'kick', url: '/models/boxing/animations/mma-kick.glb'},
 ];
-const IDLE_URL = '/models/boxing/animations/idle.fbx';
+const IDLE_URL = '/models/boxing/animations/idle.glb';
 const BLEND_TIME = 0.18;
+
+/**
+ * Mixamo bone names carry a "mixamorig:" prefix in the rig, but that colon is
+ * lost when a skeleton-only FBX is round-tripped to GLB. Match bones on a
+ * case-insensitive, separator-free key so both sides line up.
+ */
+const boneKey = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
 /**
  * BoxingBuddy
  * A small three.js mascot pinned to the bottom-right corner of every page.
- * Plays a Mixamo idle loop on a skinless animation FBX retargeted onto the
+ * Plays a Mixamo idle loop from a skinless animation GLB retargeted onto the
  * character by direct bone-local-transform copying (both rigs share the same
- * sanitized Mixamo bone names).
+ * Mixamo bone names up to separators).
+ *
+ * GLB rather than FBX: Oxygen does not serve .fbx static assets at all
+ * (requests 404 even though the file is committed and present in the build),
+ * while .glb is served normally.
  *
  * Interaction:
  *  - initial: idle loop + "HIT ME" taunt
@@ -40,7 +51,6 @@ export function BoxingBuddy() {
     (async () => {
       const THREE = await import('three');
       const {GLTFLoader} = await import('three/examples/jsm/loaders/GLTFLoader.js');
-      const {FBXLoader} = await import('three/examples/jsm/loaders/FBXLoader.js');
       if (disposed) return;
 
       const container = containerRef.current;
@@ -193,7 +203,7 @@ export function BoxingBuddy() {
       shadow.position.y = 0.002;
       scene.add(shadow);
 
-      // ---------- animation entries (skeleton-only FBX) ----------
+      // ---------- animation entries (skeleton-only GLB) ----------
       type Pair = {
         tb: any;
         sb: any;
@@ -217,20 +227,25 @@ export function BoxingBuddy() {
       const tmpV = new THREE.Vector3();
 
       const buildEntry = async (key: string, url: string, once: boolean) => {
-        const fbx = await new FBXLoader().loadAsync(url);
-        const clip = fbx.animations[0];
+        const gltf = await new GLTFLoader().loadAsync(url);
+        const clip = gltf.animations[0];
         if (!clip) throw new Error(`BoxingBuddy: no clip in ${url}`);
+        const srcRoot = gltf.scene;
 
         const posAnimated = new Set<string>();
         for (const t of clip.tracks) {
           if (t.name.endsWith('.position')) {
-            posAnimated.add(t.name.replace('.position', ''));
+            posAnimated.add(boneKey(t.name.replace('.position', '')));
           }
         }
 
+        // An animation-only GLB has no skinned mesh, so its nodes import as
+        // plain Object3D — never Bone. Collect every named node instead of
+        // filtering on o.isBone, otherwise nothing matches and the retarget
+        // silently produces a frozen character.
         const srcBones = new Map<string, any>();
-        fbx.traverse((o: any) => {
-          if (o.isBone) srcBones.set(o.name, o);
+        srcRoot.traverse((o: any) => {
+          if (o.name) srcBones.set(boneKey(o.name), o);
         });
 
         // capture the source rig's rest pose before the mixer advances it
@@ -243,7 +258,7 @@ export function BoxingBuddy() {
 
         // rescale authored hips positions from the Mixamo rig units to this
         // character's skeleton height
-        fbx.updateMatrixWorld(true);
+        srcRoot.updateMatrixWorld(true);
         const srcBox = new THREE.Box3();
         const sp = new THREE.Vector3();
         for (const b of srcBones.values()) srcBox.expandByPoint(b.getWorldPosition(sp));
@@ -251,22 +266,23 @@ export function BoxingBuddy() {
 
         const pairs: Pair[] = [];
         for (const tb of skinned.skeleton.bones) {
-          const sb = srcBones.get(tb.name);
+          const k = boneKey(tb.name);
+          const sb = srcBones.get(k);
           if (!sb) continue;
           pairs.push({
             tb,
             sb,
-            withPos: posAnimated.has(sb.name),
-            R0: srcRestQ.get(sb.name)!
+            withPos: posAnimated.has(k),
+            R0: srcRestQ.get(k)!
               .clone()
               .invert()
               .multiply(tgtRestQ.get(tb)!),
             restTbP: tgtRestP.get(tb)!,
-            restSbP: srcRestP.get(sb.name)!,
+            restSbP: srcRestP.get(k)!,
           });
         }
 
-        const mixer = new THREE.AnimationMixer(fbx);
+        const mixer = new THREE.AnimationMixer(srcRoot);
         const action = mixer.clipAction(clip);
         const entry: Entry = {key, once, mixer, action, pairs, posScale};
         entry.mixer.addEventListener('finished', () => {
@@ -421,6 +437,25 @@ export function BoxingBuddy() {
         },
         get elapsed() {
           return elapsed;
+        },
+        // verification aids: how many bones each clip bound, and whether the
+        // rig pose is actually moving (bone-local quaternion y components)
+        get diag() {
+          return [...entries.values()].map((e) => ({
+            key: e.key,
+            once: e.once,
+            pairs: e.pairs.length,
+            posAnimated: e.pairs.filter((p) => p.withPos).length,
+            trackList: e.action.getClip().tracks.length,
+            duration: +e.action.getClip().duration.toFixed(2),
+            posScale: +e.posScale.toFixed(4),
+          }));
+        },
+        get activeKey() {
+          return activeKey;
+        },
+        get pose() {
+          return skinned.skeleton.bones.map((b: any) => b.quaternion.y);
         },
       };
       renderer.setAnimationLoop(() => {
