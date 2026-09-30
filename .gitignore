@@ -1,0 +1,9 @@
+
+# large archives
+boxing.zip
+*.zip
+
+# secrets
+.env
+.env_副本
+.env*.local
