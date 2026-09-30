@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>GLB diagnostic</title></head>
+<body style="background:#111;color:#0f0;font-family:monospace;font-size:14px;margin:0">
+<pre id="out" style="position:fixed;top:0;left:0;z-index:10;background:rgba(0,0,0,.7);padding:8px"></pre>
+<div id="stage" style="width:100vw;height:100vh"></div>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.183.2/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.183.2/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+
+const outEl = document.getElementById('out');
+const out = (s) => { outEl.textContent += s + '\n'; };
+outEl.textContent = '';
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+document.getElementById('stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x222222);
+const camera = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, 0.01, 100);
+camera.position.set(0, 1, 4);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
+const d = new THREE.DirectionalLight(0xffffff, 2); d.position.set(2,3,4); scene.add(d);
+
+new GLTFLoader().load('/models/jab-cross.glb', (gltf) => {
+  const sceneObj = gltf.scene;
+  const broken = [];
+  sceneObj.traverse((o) => {
+    if (o.name === 'Cube') { o.visible = false; return; }
+    if (o.isMesh) {
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      mats.forEach((m) => {
+        out(`mesh ${o.name} mat ${m.name}: map=${m.map ? (m.map.image ? 'OK ' + m.map.image.width + 'x' + m.map.image.height : 'BROKEN') : 'NULL'} normalMap=${m.normalMap ? (m.normalMap.image ? 'OK' : 'BROKEN') : 'NULL'}`);
+        if (m.map && !m.map.image) broken.push({m, kind:'map'});
+        if (m.normalMap && !m.normalMap.image) broken.push({m, kind:'normal'});
+      });
+    }
+  });
+  out('broken count: ' + broken.length);
+  const tl = new THREE.TextureLoader();
+  Promise.all(broken.map(({m, kind}) => new Promise((res) => {
+    tl.load(kind === 'map' ? '/models/boxing-basecolor.jpg' : '/models/boxing-normal.jpg', (t) => {
+      if (kind === 'map') { t.colorSpace = THREE.SRGBColorSpace; m.map = t; }
+      else m.normalMap = t;
+      t.flipY = false;
+      m.needsUpdate = true;
+      res();
+    }, undefined, (e) => { out('FALLBACK LOAD FAIL: ' + e); res(); });
+  }))).then(() => {
+    sceneObj.traverse((o) => {
+      if (o.isMesh) {
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach((m) => out(`after fix: ${m.name} map=${m.map ? (m.map.image ? m.map.image.width + 'x' + m.map.image.height + (m.map.image.constructor.name === 'ImageBitmap' ? ' bitmap' : ' img') : 'STILL BROKEN') : 'NULL'} flipY=${m.map ? m.map.flipY : '-'}`));
+      }
+    });
+    out('FIX APPLIED');
+  });
+  scene.add(sceneObj);
+  const mixer = new THREE.AnimationMixer(sceneObj);
+  if (gltf.animations[0]) mixer.clipAction(gltf.animations[0]).play();
+  const clock = new THREE.Clock();
+  const loop = () => { requestAnimationFrame(loop); mixer.update(clock.getDelta()); renderer.render(scene, camera); };
+  loop();
+  out('RENDERING');
+}, undefined, (e) => out('LOAD ERROR: ' + e));
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Retarget lab (bone copy)</title>
+<style>
+  body{margin:0;background:#101014;color:#eee;font:13px/1.5 ui-monospace,monospace}
+  #out{position:fixed;top:0;left:0;z-index:10;background:rgba(0,0,0,.75);padding:10px;max-width:46vw;white-space:pre-wrap;max-height:100vh;overflow:auto}
+  #ui{position:fixed;bottom:0;left:0;z-index:11;padding:10px;display:flex;gap:8px}
+  button{font:inherit;padding:6px 12px;border-radius:6px;border:1px solid #555;background:#1e1e26;color:#eee;cursor:pointer}
+  button.on{background:#e10600;border-color:#e10600}
+</style>
+</head>
+<body>
+<pre id="out"></pre>
+<div id="ui"></div>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.183.2/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.183.2/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
+
+const outEl = document.getElementById('out');
+outEl.textContent = '';
+const out = (s) => { outEl.textContent += s + '\n'; };
+
+const params = new URLSearchParams(location.search);
+const charUrl = params.get('char') || '/models/boxing/basic/rig-a.glb';
+
+// ---------- scene ----------
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x101014);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x202028, 2.0));
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(3, 5, 4); scene.add(key);
+const rim = new THREE.DirectionalLight(0xe10600, 1.6); rim.position.set(-4, 2, -4); scene.add(rim);
+
+const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.01, 200);
+camera.position.set(0.6, 1.2, 4.0);
+camera.lookAt(0, 0.95, 0);
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ---------- load character ----------
+out('char: ' + charUrl);
+const gltf = await new GLTFLoader().loadAsync(charUrl);
+const charRoot = gltf.scene;
+
+let skinned = null;
+const skinnedMeshes = [];
+charRoot.traverse((o) => {
+  if (o.isSkinnedMesh) { skinnedMeshes.push(o); if (!skinned) skinned = o; }
+  if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; o.receiveShadow = false; }
+});
+if (!skinned) { out('!! NO SKINNED MESH'); throw new Error('no skin'); }
+out(`skinned meshes: ${skinnedMeshes.length}, bones=${skinned.skeleton.bones.length}`);
+
+// Mixamo FBX->glTF exports keep a +90°X rotation on the Armature node, which
+// makes the character lie face-down. Compensate on the scene root.
+charRoot.rotation.x = -Math.PI / 2;
+
+for (const sm of skinnedMeshes) {
+  (Array.isArray(sm.material) ? sm.material : [sm.material]).forEach((m) => {
+    if (m.map) { m.map.colorSpace = THREE.SRGBColorSpace; m.needsUpdate = true; }
+  });
+}
+
+// ---------- framing via camera ONLY ----------
+// IMPORTANT: never scale/position the character root at runtime — that
+// desyncs bindMatrix vs matrixWorld and destroys skinning. Frame with the
+// camera instead.
+charRoot.updateMatrixWorld(true);
+const boneBox = new THREE.Box3();
+const _wp = new THREE.Vector3();
+for (const b of skinned.skeleton.bones) boneBox.expandByPoint(b.getWorldPosition(_wp));
+const size = boneBox.getSize(new THREE.Vector3());
+const center = boneBox.getCenter(new THREE.Vector3());
+out(`boneBox size=${size.toArray().map((v) => v.toFixed(3))} min=${boneBox.min.toArray().map((v) => v.toFixed(3))} max=${boneBox.max.toArray().map((v) => v.toFixed(3))}`);
+
+const targetH = 1.8; // desired on-screen height in world units
+const dist = (targetH / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) + 0.4;
+camera.position.set(0.5, center.y + 0.05, dist);
+camera.lookAt(0, center.y, 0);
+out(`camera dist=${dist.toFixed(3)}`);
+
+scene.add(charRoot);
+
+// ---------- animation sources (skeleton-only FBX) ----------
+// Direct bone-copy retargeting: both rigs are Mixamo skeletons with matching
+// sanitized names. We advance the source mixer and copy local transforms.
+const ANIMS = [
+  {key: 'idle', label: 'Idle', url: '/models/boxing/animations/idle.fbx'},
+  {key: 'punch', label: 'Punch Combo', url: '/models/boxing/animations/punch-combo.fbx'},
+  {key: 'kick', label: 'Mma Kick', url: '/models/boxing/animations/mma-kick.fbx'},
+];
+const fbxLoader = new FBXLoader();
+const anims = {};
+
+for (const a of ANIMS) {
+  const fbx = await fbxLoader.loadAsync(a.url);
+  const clip = fbx.animations[0];
+  if (!clip) { out(`${a.label}: no clip`); continue; }
+
+  // which bones have animated position tracks (only copy those positions)
+  const posAnimated = new Set();
+  for (const t of clip.tracks) {
+    if (t.name.endsWith('.position')) posAnimated.add(t.name.replace('.position', ''));
+  }
+
+  const srcBones = new Map();
+  fbx.traverse((o) => { if (o.isBone) srcBones.set(o.name, o); });
+
+  // skeleton height ratio: source hips positions are authored for the Mixamo
+  // rig's own units — rescale to this character's skeleton height
+  fbx.updateMatrixWorld(true);
+  const srcBox = new THREE.Box3();
+  const _sp = new THREE.Vector3();
+  for (const b of srcBones.values()) srcBox.expandByPoint(b.getWorldPosition(_sp));
+  const srcH = srcBox.getSize(new THREE.Vector3()).y;
+  const posScale = size.y / srcH;
+
+  const pairs = [];
+  for (const tb of skinned.skeleton.bones) {
+    let sb = srcBones.get(tb.name);
+    if (!sb) sb = srcBones.get(tb.name.replace(/_\d+$/, '')); // rig-a suffixes
+    if (sb) pairs.push([tb, sb, posAnimated.has(sb.name)]);
+  }
+
+  anims[a.key] = {
+    label: a.label,
+    mixer: new THREE.AnimationMixer(fbx),
+    action: null,
+    pairs,
+    posScale,
+    duration: clip.duration,
+  };
+  anims[a.key].action = anims[a.key].mixer.clipAction(clip);
+  out(`${a.label}: pairs=${pairs.length}/${skinned.skeleton.bones.length} posBones=${[...posAnimated].join(',')} dur=${clip.duration.toFixed(2)}s srcH=${srcH.toFixed(3)} posScale=${posScale.toFixed(4)}`);
+}
+
+function applyPose(entry) {
+  for (const [tb, sb, withPos] of entry.pairs) {
+    tb.quaternion.copy(sb.quaternion);
+    if (withPos) tb.position.copy(sb.position).multiplyScalar(entry.posScale);
+  }
+}
+
+let activeKey = null;
+function play(key) {
+  if (!anims[key]) return;
+  if (activeKey) anims[activeKey].action.stop();
+  activeKey = key;
+  const e = anims[key];
+  e.action.reset();
+  e.action.setLoop(key === 'idle' ? THREE.LoopRepeat : THREE.LoopOnce, key === 'idle' ? Infinity : 1);
+  e.action.clampWhenFinished = key !== 'idle';
+  e.action.play();
+  document.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.key === key));
+}
+
+const ui = document.getElementById('ui');
+for (const a of ANIMS) {
+  const b = document.createElement('button');
+  b.textContent = a.label;
+  b.dataset.key = a.key;
+  b.onclick = () => play(a.key);
+  ui.appendChild(b);
+}
+
+// ---------- bind-pose snapshot for comparisons ----------
+const bindPose = skinned.skeleton.bones.map((b) => ({q: b.quaternion.clone(), p: b.position.clone()}));
+window.__resetBindPose = () => {
+  if (activeKey) anims[activeKey].action.stop();
+  activeKey = null;
+  skinned.skeleton.bones.forEach((b, i) => { b.quaternion.copy(bindPose[i].q); b.position.copy(bindPose[i].p); });
+  document.querySelectorAll('button').forEach((b) => b.classList.remove('on'));
+};
+const rb = document.createElement('button');
+rb.textContent = 'T-pose';
+rb.onclick = () => window.__resetBindPose();
+ui.appendChild(rb);
+
+play('idle');
+out('RENDERING');
+
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const dt = clock.getDelta();
+  if (activeKey) {
+    const e = anims[activeKey];
+    e.mixer.update(dt);
+    applyPose(e);
+  }
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
