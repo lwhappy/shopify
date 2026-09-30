@@ -10,3 +10,6 @@ boxing.zip
 
 # dependencies
 node_modules/
+
+# local model archive (kept out of deploys and git)
+model-archive/
