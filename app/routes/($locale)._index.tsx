@@ -8,7 +8,7 @@ import type {
 } from 'storefrontapi.generated';
 import {ProductItem} from '~/components/ProductItem';
 import {MockShopNotice} from '~/components/MockShopNotice';
-import {BoxingBoy3D} from '~/components/BoxingBoy3D';
+import {BoxingBoy3D, HERO_MODEL_URL} from '~/components/BoxingBoy3D';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -20,6 +20,23 @@ export const meta: Route.MetaFunction = () => {
     },
   ];
 };
+
+/**
+ * The hero 3D model is the largest above-the-fold asset. Without this it is not
+ * requested until the JS bundle and the dynamically imported three.js chunk have
+ * both run; preloading starts the download during HTML parse instead.
+ * `crossOrigin` must match the fetch mode GLTFLoader uses, or the response is
+ * fetched twice instead of being reused.
+ */
+export const links: Route.LinksFunction = () => [
+  {
+    rel: 'preload',
+    href: HERO_MODEL_URL,
+    as: 'fetch',
+    type: 'model/gltf-binary',
+    crossOrigin: 'anonymous',
+  },
+];
 
 export async function loader(args: Route.LoaderArgs) {
   // Start fetching non-critical data without blocking time to first byte

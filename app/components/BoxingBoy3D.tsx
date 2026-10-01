@@ -1,10 +1,25 @@
 import {useEffect, useRef, useState} from 'react';
 
 /**
+ * Hero model URL. Exported so the homepage route can preload it during HTML
+ * parse — it is the largest above-the-fold asset and would otherwise not be
+ * requested until the JS bundle *and* the lazily imported three.js chunk had
+ * both executed. The `?v=` suffix busts Oxygen's year-long asset cache.
+ */
+export const HERO_MODEL_URL = '/models/jab-cross.glb?v=2';
+
+/**
+ * Bundled fallbacks used only when the GLB's embedded textures fail to decode.
+ * Small enough not to matter, and never fetched on the happy path.
+ */
+const FALLBACK_BASECOLOR = '/models/boxing-basecolor.jpg';
+const FALLBACK_NORMAL = '/models/boxing-normal.jpg';
+
+/**
  * BoxingBoy3D
- * Client-only three.js viewer that loads /models/jab-cross.glb,
- * plays its embedded animation, auto-rotates slowly and renders
- * the model centered in a fullscreen hero canvas.
+ * Client-only three.js viewer that loads the hero GLB, plays its embedded
+ * animation, auto-rotates slowly and renders the model centered in a
+ * fullscreen hero canvas.
  */
 export function BoxingBoy3D() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -95,8 +110,8 @@ export function BoxingBoy3D() {
 
       const loader = new GLTFLoader();
       loader.load(
-        '/models/jab-cross.glb',
-        (gltf) => {
+        HERO_MODEL_URL,
+        async (gltf) => {
           if (disposed) return;
           const model = gltf.scene;
 
@@ -150,29 +165,36 @@ export function BoxingBoy3D() {
             }
           });
 
-          if (brokenMap.length > 0 || brokenNormal.length > 0) {
-            const texLoader = new THREE.TextureLoader();
-            if (brokenMap.length > 0) {
-              texLoader.load('/models/boxing-basecolor.jpg', (tex) => {
-                if (disposed) return;
-                tex.colorSpace = THREE.SRGBColorSpace;
-                tex.flipY = false; // glTF UV convention
-                brokenMap.forEach((m) => {
-                  m.map = tex;
-                  m.needsUpdate = true;
-                });
-              });
-            }
-            if (brokenNormal.length > 0) {
-              texLoader.load('/models/boxing-normal.jpg', (tex) => {
-                if (disposed) return;
-                tex.flipY = false;
-                brokenNormal.forEach((m) => {
-                  m.normalMap = tex;
-                  m.needsUpdate = true;
-                });
-              });
-            }
+          // If the GLB's embedded textures failed to decode (GLTFLoader leaves
+          // map/normalMap null rather than throwing), fetch the bundled
+          // fallbacks — and finish applying them BEFORE flipping `ready`.
+          // Previously the model was revealed first and the textures arrived a
+          // couple of seconds later, so the fighter sat there as a flat gray
+          // silhouette. Now the loading overlay covers that window instead.
+          const texLoader = new THREE.TextureLoader();
+          const [fallbackMap, fallbackNormalMap] = await Promise.all([
+            brokenMap.length > 0
+              ? texLoader.loadAsync(FALLBACK_BASECOLOR).catch(() => null)
+              : Promise.resolve(null),
+            brokenNormal.length > 0
+              ? texLoader.loadAsync(FALLBACK_NORMAL).catch(() => null)
+              : Promise.resolve(null),
+          ]);
+          if (disposed) return;
+          if (fallbackMap) {
+            fallbackMap.colorSpace = THREE.SRGBColorSpace;
+            fallbackMap.flipY = false; // glTF UV convention
+            brokenMap.forEach((m) => {
+              m.map = fallbackMap;
+              m.needsUpdate = true;
+            });
+          }
+          if (fallbackNormalMap) {
+            fallbackNormalMap.flipY = false;
+            brokenNormal.forEach((m) => {
+              m.normalMap = fallbackNormalMap;
+              m.needsUpdate = true;
+            });
           }
 
           // Center + scale the model to fit the stage.

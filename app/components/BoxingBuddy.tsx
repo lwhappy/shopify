@@ -1,15 +1,21 @@
 import {useEffect, useRef, useState} from 'react';
 import type * as ThreeTypes from 'three';
 
-const MODEL_URL = '/models/boxing/basic/boxing-boy-rig.glb';
-const FALLBACK_BASECOLOR = '/models/boxing/basic/boxing-boy-rig-basecolor.png';
-const CLOSED_BASECOLOR = '/models/boxing/basic/boxing-boy-rig-basecolor-blink.png';
-const FALLBACK_NORMAL = '/models/boxing/basic/boxing-boy-rig-normal.png';
+/**
+ * Oxygen serves static assets with `cache-control: max-age=31536000`, so a file
+ * replaced at the same path keeps being served from cache with its old bytes.
+ * Bump this suffix whenever the files behind these URLs change.
+ */
+const V = '?v=2';
+const MODEL_URL = `/models/boxing/basic/boxing-boy-rig.glb${V}`;
+const FALLBACK_BASECOLOR = `/models/boxing/basic/boxing-boy-rig-basecolor.webp${V}`;
+const CLOSED_BASECOLOR = `/models/boxing/basic/boxing-boy-rig-basecolor-blink.webp${V}`;
+const FALLBACK_NORMAL = `/models/boxing/basic/boxing-boy-rig-normal.webp${V}`;
 const MOVE_ANIMS = [
-  {key: 'punch', url: '/models/boxing/animations/punch-combo.glb'},
-  {key: 'kick', url: '/models/boxing/animations/mma-kick.glb'},
+  {key: 'punch', url: `/models/boxing/animations/punch-combo.glb${V}`},
+  {key: 'kick', url: `/models/boxing/animations/mma-kick.glb${V}`},
 ];
-const IDLE_URL = '/models/boxing/animations/idle.glb';
+const IDLE_URL = `/models/boxing/animations/idle.glb${V}`;
 const BLEND_TIME = 0.18;
 
 /**
@@ -80,28 +86,26 @@ export function BoxingBuddy() {
       scene.add(rimLight);
 
       // ---------- character ----------
-      // Load fallback textures in parallel with the model — the GLB's
-      // embedded texture blobs intermittently fail to decode (GLTFLoader
-      // then silently sets map/normalMap = null).
-      const [gltf, fallbackTex, fallbackNormal, closedTex] = await Promise.all([
-        new GLTFLoader().loadAsync(MODEL_URL),
-        new THREE.TextureLoader().loadAsync(FALLBACK_BASECOLOR).catch(() => null),
-        new THREE.TextureLoader().loadAsync(FALLBACK_NORMAL).catch(() => null),
-        new THREE.TextureLoader().loadAsync(CLOSED_BASECOLOR).catch(() => null),
+      // The rig and all three animation clips are fetched at the same time.
+      // They used to be strictly sequential — the clips only started after the
+      // (multi-megabyte) rig had resolved — which parked three ~80KB files at
+      // the very end of the network queue. They are independent, so overlap them.
+      const loadGltf = (url: string) => new GLTFLoader().loadAsync(url);
+      const [gltf, ...animFiles] = await Promise.all([
+        loadGltf(MODEL_URL),
+        loadGltf(IDLE_URL),
+        ...MOVE_ANIMS.map((m) => loadGltf(m.url)),
       ]);
       if (disposed) return;
-      if (fallbackTex) {
-        fallbackTex.colorSpace = THREE.SRGBColorSpace;
-        fallbackTex.flipY = false; // glTF UV convention
-      }
-      if (closedTex) {
-        closedTex.colorSpace = THREE.SRGBColorSpace;
-        closedTex.flipY = false;
-      }
-      if (fallbackNormal) {
-        fallbackNormal.flipY = false; // stays linear (NoColorSpace)
-      }
+      const animByKey = new Map<string, any>([['idle', animFiles[0]]]);
+      MOVE_ANIMS.forEach((m, i) => animByKey.set(m.key, animFiles[i + 1]));
       const charRoot = gltf.scene;
+
+      // Materials whose embedded texture failed to decode. Collected first,
+      // then (and only then) the external fallbacks are fetched — they used to
+      // be pulled on every page view even though the embedded maps normally work.
+      const needBaseColor: any[] = [];
+      const needNormalMap: any[] = [];
 
       let skinned: any = null;
       charRoot.traverse((o: any) => {
@@ -118,13 +122,8 @@ export function BoxingBuddy() {
             m.alphaTest = 0;
             m.depthWrite = true;
             m.side = THREE.FrontSide;
-            if (!m.map && fallbackTex) {
-              m.map = fallbackTex;
-            }
-            if (!m.normalMap && fallbackNormal) {
-              m.normalMap = fallbackNormal;
-              m.normalScale = new THREE.Vector2(0.8, 0.8);
-            }
+            if (!m.map) needBaseColor.push(m);
+            if (!m.normalMap) needNormalMap.push(m);
             if (m.map) {
               m.map.colorSpace = THREE.SRGBColorSpace;
             }
@@ -133,6 +132,33 @@ export function BoxingBuddy() {
         }
       });
       if (!skinned) throw new Error('BoxingBuddy: character has no skin');
+
+      const texLoader = new THREE.TextureLoader();
+      const [fallbackTex, fallbackNormal] = await Promise.all([
+        needBaseColor.length
+          ? texLoader.loadAsync(FALLBACK_BASECOLOR).catch(() => null)
+          : Promise.resolve(null),
+        needNormalMap.length
+          ? texLoader.loadAsync(FALLBACK_NORMAL).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+      if (disposed) return;
+      if (fallbackTex) {
+        fallbackTex.colorSpace = THREE.SRGBColorSpace;
+        fallbackTex.flipY = false; // glTF UV convention
+        for (const m of needBaseColor) {
+          m.map = fallbackTex;
+          m.needsUpdate = true;
+        }
+      }
+      if (fallbackNormal) {
+        fallbackNormal.flipY = false; // stays linear (NoColorSpace)
+        for (const m of needNormalMap) {
+          m.normalMap = fallbackNormal;
+          m.normalScale = new THREE.Vector2(0.8, 0.8);
+          m.needsUpdate = true;
+        }
+      }
 
       // Blink: the eyes are painted into the base color texture, so blinking
       // is done by briefly swapping in a "closed eyes" texture variant
@@ -147,6 +173,9 @@ export function BoxingBuddy() {
         }
       });
       const openTex: any = mats[0]?.map ?? null;
+      // Fetched only once the character is on screen — it is needed for the
+      // first blink, which is seconds away, so it must not compete with the rig.
+      let closedTex: any = null;
 
       // Capture the target rig's rest pose BEFORE any animation is applied.
       // Retarget math: q_target = q_src * (q_srcRest⁻¹ * q_targetRest), i.e.
@@ -226,10 +255,9 @@ export function BoxingBuddy() {
 
       const tmpV = new THREE.Vector3();
 
-      const buildEntry = async (key: string, url: string, once: boolean) => {
-        const gltf = await new GLTFLoader().loadAsync(url);
+      const buildEntry = async (key: string, gltf: any, once: boolean) => {
         const clip = gltf.animations[0];
-        if (!clip) throw new Error(`BoxingBuddy: no clip in ${url}`);
+        if (!clip) throw new Error(`BoxingBuddy: no clip for "${key}"`);
         const srcRoot = gltf.scene;
 
         const posAnimated = new Set<string>();
@@ -379,14 +407,26 @@ export function BoxingBuddy() {
       };
       renderer.domElement.addEventListener('pointerdown', onPointerDown);
 
-      await buildEntry('idle', IDLE_URL, false);
+      await buildEntry('idle', animByKey.get('idle'), false);
       for (const m of MOVE_ANIMS) {
-        await buildEntry(m.key, m.url, true);
+        await buildEntry(m.key, animByKey.get(m.key), true);
       }
       if (disposed) return;
       transitionTo('idle', false);
       setReady(true);
       setTaunt(true);
+
+      // Now that the character is visible, fetch the blink variant in the
+      // background — it is only needed once the first blink comes around.
+      texLoader
+        .loadAsync(CLOSED_BASECOLOR)
+        .then((tex) => {
+          if (disposed) return;
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.flipY = false;
+          closedTex = tex;
+        })
+        .catch(() => {});
 
       // ---------- resize ----------
       const resize = () => {
