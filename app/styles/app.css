@@ -1153,8 +1153,16 @@ button.reset:hover:not(:has(> *)) {
 */
 .boxing-buddy {
   position: fixed;
-  right: 1rem;
-  bottom: 0;
+  /*
+   * The canvas frames the character with symmetric margins, so roughly 40% of
+   * its width is transparent dead space — 60px of it on the right at desktop,
+   * 39px on mobile, which reads as the mascot floating far from the corner.
+   * Shift the whole widget so the character itself hugs the viewport corner
+   * and the surplus transparent canvas hangs off-screen (a position:fixed
+   * element never creates scrollbars, so this is safe on every viewport).
+   */
+  right: calc(1rem - 66px);
+  bottom: -9px;
   width: 290px;
   height: 360px;
   z-index: 15;
@@ -1214,7 +1222,8 @@ button.reset:hover:not(:has(> *)) {
   .boxing-buddy {
     width: 190px;
     height: 240px;
-    right: 0.5rem;
+    right: calc(0.5rem - 39px);
+    bottom: -5px;
   }
 }
 
