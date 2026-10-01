@@ -1019,13 +1019,83 @@ button.reset:hover:not(:has(> *)) {
   top: 6rem;
 }
 
+.product-price {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
 .product-price-on-sale {
   display: flex;
-  grid-gap: 0.5rem;
+  align-items: baseline;
+  grid-gap: 0.6rem;
 }
 
 .product-price-on-sale s {
-  opacity: 0.5;
+  color: var(--color-muted);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/*
+ * Add to cart — the only way to place an order, so it gets the same
+ * full-weight treatment as the hero CTAs. Without these rules the button
+ * falls back to the bare UA style (transparent, ~60x24px plain text), which
+ * on this dark theme looks like the button is missing altogether.
+ */
+.product-form form {
+  margin-top: 1.25rem;
+}
+
+.product-form button[type='submit'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 26rem;
+  min-height: 3.25rem;
+  padding: 0.9rem 2rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(225, 6, 0, 0.35);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.product-form button[type='submit']:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 38px rgba(225, 6, 0, 0.55);
+}
+
+.product-form button[type='submit']:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 6px 18px rgba(225, 6, 0, 0.4);
+}
+
+.product-form button[type='submit']:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 3px;
+}
+
+/* Sold out: unmistakably a button, but visibly inert. */
+.product-form button[type='submit']:disabled {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .product-options-grid {
@@ -1224,6 +1294,16 @@ button.reset:hover:not(:has(> *)) {
     height: 240px;
     right: calc(0.5rem - 39px);
     bottom: -5px;
+  }
+
+  /*
+   * On small screens the fixed mascot canvas overlaps page controls — most
+   * importantly the right half of the full-width Add to cart button. Taps in
+   * that region would punch the mascot instead of ordering, so the mascot is
+   * decorative-only on mobile (desktop keeps the punch interaction).
+   */
+  .boxing-buddy-stage {
+    pointer-events: none;
   }
 }
 

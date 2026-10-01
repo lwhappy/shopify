@@ -53,10 +53,12 @@ export function ProductForm({
                       replace
                       to={`/products/${handle}?${variantUriQuery}`}
                       style={{
+                        // Theme tokens instead of the skeleton's hardcoded
+                        // black, which is invisible on this dark surface.
                         border: selected
-                          ? '1px solid black'
-                          : '1px solid transparent',
-                        opacity: available ? 1 : 0.3,
+                          ? '1px solid var(--color-accent)'
+                          : '1px solid var(--color-border)',
+                        opacity: available ? 1 : 0.45,
                       }}
                     >
                       <ProductOptionSwatch swatch={swatch} name={name} />
@@ -76,10 +78,12 @@ export function ProductForm({
                       }`}
                       key={option.name + name}
                       style={{
+                        // Theme tokens instead of the skeleton's hardcoded
+                        // black, which is invisible on this dark surface.
                         border: selected
-                          ? '1px solid black'
-                          : '1px solid transparent',
-                        opacity: available ? 1 : 0.3,
+                          ? '1px solid var(--color-accent)'
+                          : '1px solid var(--color-border)',
+                        opacity: available ? 1 : 0.45,
                       }}
                       disabled={!exists}
                       onClick={() => {
