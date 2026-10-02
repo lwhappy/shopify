@@ -77,7 +77,6 @@ function SearchAside() {
   return (
     <Aside type="search" heading="SEARCH">
       <div className="predictive-search">
-        <br />
         <SearchFormPredictive>
           {({fetchResults, goToSearch, inputRef}) => (
             <>
@@ -90,7 +89,6 @@ function SearchAside() {
                 type="search"
                 list={queriesDatalistId}
               />
-              &nbsp;
               <button onClick={goToSearch}>Search</button>
             </>
           )}

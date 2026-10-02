@@ -94,13 +94,11 @@ function CartEmpty({
 }) {
   const {close} = useAside();
   return (
-    <div hidden={hidden}>
-      <br />
+    <div className="cart-empty" hidden={hidden}>
       <p>
         Looks like you haven&rsquo;t added anything yet, let&rsquo;s get you
         started!
       </p>
-      <br />
       <Link to="/collections" onClick={close} prefetch="viewport">
         Continue shopping →
       </Link>

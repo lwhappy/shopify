@@ -58,7 +58,6 @@ function SearchResultsArticles({
           );
         })}
       </div>
-      <br />
     </div>
   );
 }
@@ -88,7 +87,6 @@ function SearchResultsPages({term, pages}: PartialSearchResult<'pages'>) {
           );
         })}
       </div>
-      <br />
     </div>
   );
 }
@@ -116,42 +114,36 @@ function SearchResultsProducts({
             const price = product?.selectedOrFirstAvailableVariant?.price;
             const image = product?.selectedOrFirstAvailableVariant?.image;
 
-            return (
-              <div className="search-results-item" key={product.id}>
-                <Link prefetch="intent" to={productUrl}>
-                  {image && (
-                    <Image data={image} alt={product.title} width={50} />
-                  )}
-                  <div>
-                    <p>{product.title}</p>
-                    <small>{price && <Money data={price} />}</small>
-                  </div>
-                </Link>
-              </div>
-            );
-          });
-
           return (
-            <div>
-              <div>
-                <PreviousLink>
-                  {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
-                </PreviousLink>
-              </div>
-              <div>
-                {ItemsMarkup}
-                <br />
-              </div>
-              <div>
-                <NextLink>
-                  {isLoading ? 'Loading...' : <span>Load more ↓</span>}
-                </NextLink>
-              </div>
+            <div className="search-results-item" key={product.id}>
+              <Link prefetch="intent" to={productUrl}>
+                {image && (
+                  <Image data={image} alt={product.title} width={50} />
+                )}
+                <div>
+                  <p>{product.title}</p>
+                  <small>{price && <Money data={price} />}</small>
+                </div>
+              </Link>
             </div>
           );
-        }}
+        });
+
+        return (
+          <div>
+            <div className="search-pagination">
+              <PreviousLink>
+                {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
+              </PreviousLink>
+              <NextLink>
+                {isLoading ? 'Loading...' : <span>Load more ↓</span>}
+              </NextLink>
+            </div>
+            <div className="search-results-list">{ItemsMarkup}</div>
+          </div>
+        );
+      }}
       </Pagination>
-      <br />
     </div>
   );
 }

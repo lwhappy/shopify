@@ -181,7 +181,9 @@ function FeaturedCollection({
   return (
     <section className="featured-section">
       <Link
-        className="featured-collection"
+        className={`featured-collection${
+          image ? '' : ' featured-collection-no-image'
+        }`}
         to={`/collections/${collection.handle}`}
       >
         {image && (

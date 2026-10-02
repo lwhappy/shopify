@@ -78,14 +78,20 @@ function CollectionItem({
       to={`/collections/${collection.handle}`}
       prefetch="intent"
     >
-      {collection?.image && (
+      {collection?.image ? (
         <Image
           alt={collection.image.altText || collection.title}
           aspectRatio="1/1"
           data={collection.image}
           loading={index < 3 ? 'eager' : undefined}
-          sizes="(min-width: 45em) 400px, 100vw"
+          sizes="(min-width: 45em) 30vw, 50vw"
         />
+      ) : (
+        /* Store collections often ship without an image — show a branded
+           placeholder instead of a bare text link */
+        <div className="collection-item-placeholder" aria-hidden="true">
+          🥊
+        </div>
       )}
       <h5>{collection.title}</h5>
     </Link>

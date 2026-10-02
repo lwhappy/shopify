@@ -419,6 +419,28 @@ button.reset:hover:not(:has(> *)) {
   width: auto;
 }
 
+/* Full /cart page: reset.css gives every <section> 1-2rem vertical padding,
+   which doubled the gap under the "Cart" h1. Scope the trim to the page —
+   the drawer keeps its compact rhythm. */
+.cart > .cart-main {
+  padding: 0.5rem 0 2rem;
+}
+
+/* empty-cart state */
+.cart-empty {
+  padding: 0.75rem 0 1rem;
+}
+
+.cart-empty p {
+  color: var(--color-muted);
+  margin: 0 0 0.75rem;
+}
+
+.cart-empty a {
+  color: var(--color-accent-hover);
+  font-weight: 600;
+}
+
 .cart-main.with-discount {
   max-height: calc(100vh - var(--cart-aside-summary-height-with-discount));
 }
@@ -670,55 +692,206 @@ button.reset:hover:not(:has(> *)) {
 
 /*
 * --------------------------------------------------
-* components/Search
+* components/Search — predictive drawer + /search page
 * --------------------------------------------------
 */
 .predictive-search {
   height: calc(100vh - var(--header-height) - 40px);
   overflow-y: auto;
+  padding-bottom: 1rem;
 }
 
+/* form row: full-width themed input + accent button (drawer) */
 .predictive-search-form {
+  align-items: center;
   background: var(--color-surface);
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0.75rem;
   position: sticky;
   top: 0;
+  z-index: 2;
 }
 
+/* Shared themed search input — the reset.css default is `border: 1px solid
+   #000`, which is invisible on the dark background */
+.predictive-search-form input,
+.search form input[type='search'] {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--color-text);
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.95rem;
+  margin: 0;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  transition: border-color 150ms ease;
+  width: 100%;
+}
+
+.predictive-search-form input:focus,
+.search form input[type='search']:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.predictive-search-form input::placeholder,
+.search form input[type='search']::placeholder {
+  color: var(--color-muted);
+}
+
+.predictive-search-form button,
+.search form button[type='submit'] {
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  transition: background 150ms ease;
+}
+
+.predictive-search-form button:hover,
+.search form button[type='submit']:hover {
+  background: var(--color-accent-hover);
+}
+
+/* --- drawer results --- */
 .predictive-search-result {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .predictive-search-result h5 {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  margin: 0 0 0.4rem;
   text-transform: uppercase;
 }
 
 .predictive-search-result-item {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .predictive-search-result-item a {
   align-items: center;
+  border-radius: 8px;
   display: flex;
+  padding: 0.4rem 0.5rem;
+  transition: background 150ms ease;
+}
+
+.predictive-search-result-item a:hover {
+  background: var(--color-surface-2);
+  text-decoration: none;
 }
 
 .predictive-search-result-item a img {
+  border-radius: 6px;
+  height: 44px;
   margin-right: 0.75rem;
-  height: 100%;
+  object-fit: cover;
+  width: 44px;
+}
+
+.predictive-search-result-item p {
+  margin: 0;
+}
+
+.predictive-search-result-item small {
+  color: var(--color-gold);
+}
+
+/* "No results found for …" / "View all results for …" */
+.predictive-search > p {
+  color: var(--color-muted);
+}
+
+.predictive-search > a {
+  color: var(--color-accent-hover);
+  font-weight: 600;
+}
+
+/* --- /search page --- */
+.search form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+  max-width: 560px;
 }
 
 .search-result {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.search-result h2 {
+  border-bottom: 1px solid var(--color-border);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+  text-transform: uppercase;
 }
 
 .search-results-item {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .search-results-item a {
-  display: flex;
-  flex: row;
   align-items: center;
+  border-radius: 10px;
+  display: flex;
   gap: 1rem;
+  padding: 0.5rem 0.5rem;
+  transition: background 150ms ease;
+}
+
+.search-results-item a:hover {
+  background: var(--color-surface-2);
+  text-decoration: none;
+}
+
+.search-results-item a img {
+  border-radius: 8px;
+  height: 56px;
+  object-fit: cover;
+  width: 56px;
+}
+
+.search-results-item p {
+  margin: 0;
+}
+
+.search-results-item small {
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+.search-pagination {
+  align-items: center;
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.search-pagination a,
+.search-pagination button {
+  color: var(--color-accent-hover);
+  font-weight: 700;
+}
+
+/* empty state under the form */
+.search > p {
+  color: var(--color-muted);
 }
 
 /*
@@ -1071,6 +1244,37 @@ button.reset:hover:not(:has(> *)) {
   margin: 0 0 0.5rem;
 }
 
+/*
+ * The featured collection link without an image collapsed to a 26px text
+ * line — a stray strip between the feature cards and the product grid.
+ * Give it a real banner presence: surface card with inline overlay content.
+ */
+.featured-collection-no-image {
+  align-items: center;
+  background: var(--color-surface);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  min-height: 120px;
+  padding: 1.5rem 2rem;
+}
+
+.featured-collection-no-image .featured-collection-overlay {
+  background: none;
+  inset: auto;
+  padding: 0;
+  position: static;
+}
+
+.featured-collection-no-image .featured-eyebrow {
+  margin-bottom: 0.25rem;
+}
+
+.featured-collection-no-image h2 {
+  font-size: 1.4rem;
+  margin: 0 0 0.35rem;
+}
+
 .featured-link-hint {
   color: var(--color-accent-hover);
   font-weight: 600;
@@ -1166,13 +1370,72 @@ button.reset:hover:not(:has(> *)) {
 */
 .collections-grid {
   display: grid;
-  grid-gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(var(--grid-item-width), 1fr));
-  margin-bottom: 2rem;
+  grid-gap: 0.75rem;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 0 0 2rem;
+  max-width: 1200px;
+}
+
+/* card wrapper — mirrors .product-item so both listing pages read alike */
+.collection-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0.65rem;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.collection-item:hover {
+  border-color: var(--color-accent);
+  text-decoration: none;
+  transform: translateY(-3px);
+}
+
+.collection-item:hover h5 {
+  color: var(--color-accent-hover);
 }
 
 .collection-item img {
+  aspect-ratio: 1/1;
+  background: var(--color-surface-2);
+  border-radius: 10px;
   height: auto;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* branded fallback for collections without an image */
+.collection-item-placeholder {
+  align-items: center;
+  aspect-ratio: 1/1;
+  background: linear-gradient(135deg, var(--color-surface-2), #262630);
+  border-radius: 10px;
+  color: var(--color-accent);
+  display: flex;
+  font-size: 3rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.collection-item h5 {
+  color: var(--color-text);
+  font-size: 0.95rem;
+  margin: 0.45rem 0 0;
+}
+
+@media (min-width: 45em) {
+  .collections-grid {
+    grid-gap: 1.25rem;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 280px));
+    justify-content: flex-start;
+  }
 }
 
 /*
