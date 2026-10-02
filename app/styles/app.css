@@ -1235,9 +1235,12 @@ button.reset:hover:not(:has(> *)) {
 */
 .product {
   display: grid;
+  margin-bottom: 2rem;
+  padding-top: 2rem;
   @media (min-width: 45em) {
     grid-template-columns: 1fr 1fr;
     grid-gap: 4rem;
+    padding-top: 2.5rem;
   }
 }
 
