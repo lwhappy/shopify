@@ -1,7 +1,7 @@
 :root {
   --aside-width: 400px;
-  --cart-aside-summary-height-with-discount: 300px;
-  --cart-aside-summary-height: 250px;
+  --cart-aside-summary-height-with-discount: 350px;
+  --cart-aside-summary-height: 290px;
   --grid-item-width: 355px;
   --header-height: 72px;
   --color-dark: #0c0c0f;
@@ -195,7 +195,12 @@ aside li {
   transition: opacity 400ms ease-in-out;
   transition: opacity 400ms;
   visibility: hidden;
-  z-index: 10;
+  /*
+   * Must sit above the header (20) and the BoxingBuddy mascot (15), otherwise
+   * the open drawer renders underneath them — the mascot overlaps the cart
+   * drawer and its canvas even steals taps from the drawer's controls.
+   */
+  z-index: 30;
 }
 
 .overlay .close-outside {
@@ -389,7 +394,12 @@ button.reset:hover:not(:has(> *)) {
 }
 
 .cart-line {
-  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 0;
+}
+
+.cart-line:last-child {
+  border-bottom: 0;
 }
 
 .cart-line-inner {
@@ -397,26 +407,80 @@ button.reset:hover:not(:has(> *)) {
 }
 
 .cart-line img {
-  height: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
   display: block;
-  margin-right: 0.75rem;
+  height: 96px;
+  margin-right: 1rem;
+  object-fit: cover;
+  width: 96px;
 }
 
-.cart-summary-page {
-  position: relative;
-}
-
-.cart-summary-aside {
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  bottom: 0;
-  padding-top: 0.75rem;
-  position: absolute;
-  width: calc(var(--aside-width) - 40px);
-}
-
+/*
+ * Quantity stepper + remove: the skeleton rendered these as bare text-sized
+ * buttons that were nearly impossible to hit. They are now real controls
+ * with 2.25rem touch targets.
+ */
 .cart-line-quantity {
+  align-items: center;
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.cart-line-quantity small {
+  color: var(--color-muted);
+  margin-right: 0.25rem;
+}
+
+.cart-line-quantity form {
+  display: inline-flex;
+}
+
+.cart-line-quantity button {
+  align-items: center;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0 0.5rem;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.cart-line-quantity button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.cart-line-quantity button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+/* "Remove" reads as a quiet text action rather than a stepper button */
+.cart-line-quantity > form:last-of-type button {
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 0;
+  padding: 0 0.85rem;
+}
+
+.cart-line-quantity > form:last-of-type button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
 }
 
 /* Child line components (warranties, gift wrapping, etc.) */
@@ -427,13 +491,142 @@ button.reset:hover:not(:has(> *)) {
 .cart-discount {
   align-items: center;
   display: flex;
+  gap: 0.5rem;
   margin-top: 0.25rem;
 }
 
 .cart-subtotal {
+  align-items: baseline;
+  display: flex;
+  font-size: 1.1rem;
+  justify-content: space-between;
+  margin: 0.25rem 0 0;
+}
+
+.cart-subtotal dd {
+  font-weight: 700;
+  margin: 0;
+}
+
+.cart-summary-page {
+  padding-top: 1rem;
+  position: relative;
+}
+
+.cart-summary-aside {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  bottom: 0;
+  padding: 1rem 0 1.25rem;
+  position: absolute;
+  width: calc(min(var(--aside-width), 100vw) - 2rem);
+}
+
+/* summary section labels */
+.cart-summary-aside h4,
+.cart-summary-page h4 {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+/* reset.css gives every <section> 1-2rem vertical padding and every <input>
+   margins + a black border — both are wrong inside the compact summary. */
+.cart-summary-aside section,
+.cart-summary-page section {
+  margin-top: 0.9rem;
+  padding: 0;
+}
+
+.cart-summary-aside dl,
+.cart-summary-page dl {
+  margin: 0;
+}
+
+/* discount / gift-card rows: input + Apply side by side, full width */
+.cart-summary-aside div:has(> input),
+.cart-summary-page div:has(> input) {
   align-items: center;
   display: flex;
+  gap: 0.5rem;
 }
+
+.cart-summary-aside input,
+.cart-summary-page input {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.9rem;
+  margin: 0;
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+}
+
+.cart-summary-aside input:focus,
+.cart-summary-page input:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.cart-summary-aside div:has(> input) button,
+.cart-summary-page div:has(> input) button {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.cart-summary-aside div:has(> input) button:hover:not(:disabled),
+.cart-summary-page div:has(> input) button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.cart-checkout-button {
+  align-items: center;
+  background: var(--color-accent);
+  border-radius: 999px;
+  box-shadow: 0 8px 30px rgba(225, 6, 0, 0.35);
+  color: #fff !important;
+  display: flex;
+  font-size: 0.9rem;
+  font-weight: 800;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  margin-top: 1.1rem;
+  min-height: 3rem;
+  text-transform: uppercase;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.cart-checkout-button:hover {
+  background: var(--color-accent-hover);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 38px rgba(225, 6, 0, 0.55);
+}
+
+.cart-checkout-button p {
+  margin: 0;
+}
+
 /*
 * --------------------------------------------------
 * components/Search
@@ -1019,7 +1212,9 @@ button.reset:hover:not(:has(> *)) {
   top: 6rem;
 }
 
-.product-price {
+/* Scoped to the product page buy box — cart lines and product cards also
+   render .product-price and must stay at normal size. */
+.product-main .product-price {
   font-size: 1.55rem;
   font-weight: 800;
   letter-spacing: 0.01em;
