@@ -1155,7 +1155,9 @@ button.reset:hover:not(:has(> *)) {
   display: grid;
   grid-gap: 0.75rem;
   grid-template-columns: repeat(2, 1fr);
-  margin: 0 auto 2rem;
+  /* left-anchored (no auto margins) so cards line up with the page text
+     on every viewport width, including ultra-wide desktops */
+  margin: 0 0 2rem;
   max-width: 1200px;
 }
 
