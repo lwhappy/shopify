@@ -1,4 +1,4 @@
-import {Await, Link} from 'react-router';
+import {Await, Link, useLocation} from 'react-router';
 import {Suspense, useId} from 'react';
 import type {
   CartApiQueryFragment,
@@ -33,6 +33,7 @@ export function PageLayout({
   isLoggedIn,
   publicStoreDomain,
 }: PageLayoutProps) {
+  const {pathname} = useLocation();
   return (
     <Aside.Provider>
       <CartAside cart={cart} />
@@ -47,7 +48,7 @@ export function PageLayout({
         />
       )}
       <main>{children}</main>
-      <BoxingBuddy />
+      {isHomeRoute(pathname) && <BoxingBuddy />}
       <Footer
         footer={footer}
         header={header}
@@ -173,4 +174,18 @@ function MobileMenuAside({
       </Aside>
     )
   );
+}
+
+/**
+ * The BoxingBuddy mascot only shows on the home page. On collection / product
+ * / search pages its fixed canvas (with invisible transparent margins) sits on
+ * top of page controls on small screens — most importantly the right half of
+ * the full-width Add to cart button.
+ *
+ * Matches "/" plus the optional locale prefix rendered by the ($locale) routes
+ * (e.g. "/en", "en-us", "/de").
+ */
+const HOME_ROUTE_RE = /^\/(?:[a-zA-Z]{2}(?:-[a-zA-Z]{2})?\/?)?$/;
+function isHomeRoute(pathname: string): boolean {
+  return HOME_ROUTE_RE.test(pathname);
 }

@@ -120,9 +120,13 @@ aside {
   height: 100vh;
   width: min(var(--aside-width), 100vw);
   position: fixed;
-  right: calc(-1 * var(--aside-width));
+  right: 0;
   top: 0;
   transition: transform 200ms ease-in-out;
+  /* Hidden state slides the drawer out by its OWN width — translating by
+   * var(--aside-width) overshoots on viewports narrower than 400px, where
+   * width is clamped to 100vw. */
+  transform: translateX(100%);
 }
 
 aside header {
@@ -211,7 +215,12 @@ aside li {
   left: 0;
   position: absolute;
   top: 0;
-  width: calc(100% - var(--aside-width));
+  width: 100%;
+  /* Covers the WHOLE overlay, behind the drawer panel (the <aside> renders
+   * after it in DOM order, so it stacks on top). The old
+   * `width: calc(100% - var(--aside-width))` computed to zero or negative
+   * width on viewports < 400px, leaving nothing to tap — the open mobile
+   * menu could then not be closed by tapping outside. */
 }
 
 .overlay .light {
@@ -232,7 +241,28 @@ aside li {
 }
 /* reveal aside */
 .overlay.expanded aside {
-  transform: translateX(calc(var(--aside-width) * -1));
+  transform: none;
+}
+
+/*
+ * Mobile menu drawer: keep it narrower than the viewport so there is a
+ * visible dimmed area to tap for closing, slide it in BELOW the sticky
+ * header, and raise the header above the overlay (z-30) so the ☰ toggle
+ * stays tappable and can close the menu (it renders an ✕ while open).
+ */
+@media (max-width: 48em) {
+  aside {
+    width: min(var(--aside-width), 86vw);
+  }
+
+  .overlay[data-aside='mobile'] aside {
+    height: calc(100vh - var(--header-height));
+    top: var(--header-height);
+  }
+
+  html:has(.overlay[data-aside='mobile'].expanded) .header {
+    z-index: 40;
+  }
 }
 
 button.reset {
@@ -1492,13 +1522,15 @@ button.reset:hover:not(:has(> *)) {
   }
 
   /*
-   * On small screens the fixed mascot canvas overlaps page controls — most
-   * importantly the right half of the full-width Add to cart button. Taps in
-   * that region would punch the mascot instead of ordering, so the mascot is
-   * decorative-only on mobile (desktop keeps the punch interaction).
+   * Touch targets: let taps reach the canvas (punch interaction now works on
+   * mobile too) while avoiding double-tap zoom. Text selection of page
+   * content underneath can no longer happen because the canvas intercepts
+   * the pointerdown — the mascot is only mounted on the home page, where
+   * nothing interactive sits under this corner.
    */
   .boxing-buddy-stage {
-    pointer-events: none;
+    pointer-events: auto;
+    touch-action: manipulation;
   }
 }
 

@@ -70,12 +70,14 @@ export function HeaderMenu({
       {(menu || FALLBACK_HEADER_MENU).items.map((item) => {
         if (!item.url) return null;
 
-        // if the url is internal, we strip the domain
+        // if the url is internal, we strip the domain. Pass a base so
+        // relative URLs ("/collections") don't crash new URL() with
+        // "Invalid URL" (a recurring 500 on this storefront).
         const url =
           item.url.includes('myshopify.com') ||
           item.url.includes(publicStoreDomain) ||
           item.url.includes(primaryDomainUrl)
-            ? new URL(item.url).pathname
+            ? new URL(item.url, 'http://placeholder.invalid').pathname
             : item.url;
         return (
           <NavLink
@@ -116,13 +118,15 @@ function HeaderCtas({
 }
 
 function HeaderMenuMobileToggle() {
-  const {open} = useAside();
+  const {open, close, type} = useAside();
+  const isOpen = type === 'mobile';
   return (
     <button
+      aria-expanded={isOpen}
       className="header-menu-mobile-toggle reset"
-      onClick={() => open('mobile')}
+      onClick={() => (isOpen ? close() : open('mobile'))}
     >
-      <h3>☰</h3>
+      <h3>{isOpen ? '✕' : '☰'}</h3>
     </button>
   );
 }
