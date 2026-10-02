@@ -7,7 +7,7 @@ import {BOXING_BUDDY, setModelStatus} from '~/lib/modelLoadStatus';
  * replaced at the same path keeps being served from cache with its old bytes.
  * Bump this suffix whenever the files behind these URLs change.
  */
-const V = '?v=2';
+const V = '?v=3';
 const MODEL_URL = `/models/boxing/basic/boxing-boy-rig.glb${V}`;
 const FALLBACK_BASECOLOR = `/models/boxing/basic/boxing-boy-rig-basecolor.webp${V}`;
 const CLOSED_BASECOLOR = `/models/boxing/basic/boxing-boy-rig-basecolor-blink.webp${V}`;

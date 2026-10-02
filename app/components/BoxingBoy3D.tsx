@@ -7,14 +7,14 @@ import {HERO_FIGHTER, setModelStatus} from '~/lib/modelLoadStatus';
  * requested until the JS bundle *and* the lazily imported three.js chunk had
  * both executed. The `?v=` suffix busts Oxygen's year-long asset cache.
  */
-export const HERO_MODEL_URL = '/models/jab-cross.glb?v=2';
+export const HERO_MODEL_URL = '/models/jab-cross.glb?v=3';
 
 /**
  * Bundled fallbacks used only when the GLB's embedded textures fail to decode.
  * Small enough not to matter, and never fetched on the happy path.
  */
-const FALLBACK_BASECOLOR = '/models/boxing-basecolor.jpg';
-const FALLBACK_NORMAL = '/models/boxing-normal.jpg';
+const FALLBACK_BASECOLOR = '/models/boxing-basecolor.jpg?v=3';
+const FALLBACK_NORMAL = '/models/boxing-normal.jpg?v=3';
 
 /**
  * BoxingBoy3D
