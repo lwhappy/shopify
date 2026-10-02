@@ -1216,7 +1216,7 @@ button.reset:hover:not(:has(> *)) {
     grid-gap: 1.25rem;
     /* desktop: cap card width so thumbnails never balloon on big screens */
     grid-template-columns: repeat(auto-fill, minmax(230px, 280px));
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .product-item {
