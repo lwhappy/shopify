@@ -3,7 +3,7 @@
   --cart-aside-summary-height-with-discount: 350px;
   --cart-aside-summary-height: 290px;
   --grid-item-width: 355px;
-  --header-height: 72px;
+  --header-height: 56px;
   --color-dark: #0c0c0f;
   --color-light: #f5f3ef;
   --color-bg: #0c0c0f;
@@ -893,36 +893,6 @@ button.reset:hover:not(:has(> *)) {
 .hero-cta-secondary:hover {
   border-color: var(--color-accent);
   transform: translateY(-2px);
-}
-
-.hero-scroll-hint {
-  position: absolute;
-  bottom: 1.75rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 26px;
-  height: 42px;
-  border: 2px solid var(--color-border);
-  border-radius: 999px;
-  z-index: 2;
-}
-
-.hero-scroll-hint span {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  width: 4px;
-  height: 8px;
-  margin-left: -2px;
-  border-radius: 999px;
-  background: var(--color-accent);
-  animation: scroll-hint 1.6s ease-in-out infinite;
-}
-
-@keyframes scroll-hint {
-  0% { opacity: 1; transform: translateY(0); }
-  70% { opacity: 0; transform: translateY(14px); }
-  100% { opacity: 0; }
 }
 
 /*
@@ -2065,10 +2035,10 @@ button.reset:hover:not(:has(> *)) {
 
 @media (max-width: 48em) {
   .boxing-buddy {
-    width: 190px;
-    height: 240px;
-    right: calc(0.5rem - 39px);
-    bottom: -5px;
+    width: 150px;
+    height: 190px;
+    right: calc(0.5rem - 34px);
+    bottom: -4px;
   }
 
   /*

@@ -126,9 +126,6 @@ function Hero({collection}: {collection: FeaturedCollectionFragment}) {
           </Link>
         </div>
       </div>
-      <div className="hero-scroll-hint" aria-hidden="true">
-        <span />
-      </div>
     </section>
   );
 }

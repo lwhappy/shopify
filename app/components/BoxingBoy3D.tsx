@@ -225,12 +225,21 @@ export function BoxingBoy3D() {
           const size = box.getSize(new THREE.Vector3());
           const center = box.getCenter(new THREE.Vector3());
           const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = hasBox && maxDim > 0 ? 2.1 / maxDim : 1;
+          // Mobile hero: render the fighter ~30% smaller so the headline and
+          // CTAs keep the spotlight on small screens (desktop unchanged).
+          const targetSize = window.matchMedia('(max-width: 45em)').matches
+            ? 1.5
+            : 2.1;
+          const scale = hasBox && maxDim > 0 ? targetSize / maxDim : 1;
           model.scale.setScalar(scale);
           model.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
-          // Nudge the fighter down-left so the headline stays readable
-          model.position.x -= 0.55;
-          model.position.y -= 0.25;
+          // Nudge the fighter down-left so the headline stays readable.
+          // On mobile the smaller model makes the fixed world-space offset
+          // overshoot — the character ends up half off-screen — so use a
+          // gentler nudge there.
+          const isMobile = window.matchMedia('(max-width: 45em)').matches;
+          model.position.x -= isMobile ? 0.15 : 0.55;
+          model.position.y -= isMobile ? 0.1 : 0.25;
 
           group.add(model);
 
