@@ -789,6 +789,71 @@ button.reset:hover:not(:has(> *)) {
   50% { transform: scale(1.15) rotate(8deg); }
 }
 
+/*
+* --------------------------------------------------
+* PageLoader — home page 3D loading curtain
+* --------------------------------------------------
+* Covers the whole viewport (above the header at z-20 and the aside overlays
+* at z-30) until every 3D model on the home page has loaded.
+*/
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  background:
+    radial-gradient(circle 320px at 50% 50%, rgba(225, 6, 0, 0.12), transparent 70%),
+    rgba(12, 12, 15, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: opacity 260ms ease;
+}
+
+.page-loader[data-state='leaving'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.page-loader-glove {
+  font-size: 3.25rem;
+  animation: boxing-pulse 1.2s ease-in-out infinite;
+}
+
+.page-loader-text {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.page-loader-bar {
+  width: 160px;
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-surface-2);
+}
+
+.page-loader-bar span {
+  display: block;
+  width: 45%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-accent);
+  animation: page-loader-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes page-loader-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(320%); }
+}
+
 .boxing-3d-loader-bar {
   width: 220px;
   height: 4px;

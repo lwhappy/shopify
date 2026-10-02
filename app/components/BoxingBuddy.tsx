@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import type * as ThreeTypes from 'three';
+import {BOXING_BUDDY, setModelStatus} from '~/lib/modelLoadStatus';
 
 /**
  * Oxygen serves static assets with `cache-control: max-age=31536000`, so a file
@@ -415,6 +416,7 @@ export function BoxingBuddy() {
       transitionTo('idle', false);
       setReady(true);
       setTaunt(true);
+      setModelStatus(BOXING_BUDDY, 'ready');
 
       // Now that the character is visible, fetch the blink variant in the
       // background — it is only needed once the first blink comes around.
@@ -568,7 +570,10 @@ export function BoxingBuddy() {
       };
     })().catch((e) => {
       console.error('BoxingBuddy failed to load', e);
-      if (!disposed) setFailed(true);
+      if (!disposed) {
+        setFailed(true);
+        setModelStatus(BOXING_BUDDY, 'failed');
+      }
     });
 
     return () => {
@@ -580,7 +585,6 @@ export function BoxingBuddy() {
   return (
     <div className="boxing-buddy" aria-hidden="true">
       {ready && taunt && !failed ? <span className="boxing-buddy-taunt">HIT ME 👊</span> : null}
-      {!ready && !failed ? <span className="boxing-buddy-loading">🥊</span> : null}
       <div className="boxing-buddy-stage" ref={containerRef} />
     </div>
   );

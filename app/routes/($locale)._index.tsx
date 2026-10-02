@@ -9,6 +9,7 @@ import type {
 import {ProductItem} from '~/components/ProductItem';
 import {MockShopNotice} from '~/components/MockShopNotice';
 import {BoxingBoy3D, HERO_MODEL_URL} from '~/components/BoxingBoy3D';
+import {PageLoader} from '~/components/PageLoader';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -87,6 +88,7 @@ export default function Homepage() {
   const data = useLoaderData<typeof loader>();
   return (
     <div className="home">
+      <PageLoader />
       {data.isShopLinked ? null : <MockShopNotice />}
       <Hero collection={data.featuredCollection} />
       <FeatureStrip />

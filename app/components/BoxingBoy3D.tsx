@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
+import {HERO_FIGHTER, setModelStatus} from '~/lib/modelLoadStatus';
 
 /**
  * Hero model URL. Exported so the homepage route can preload it during HTML
@@ -23,8 +24,6 @@ const FALLBACK_NORMAL = '/models/boxing-normal.jpg';
  */
 export function BoxingBoy3D() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [progress, setProgress] = useState(0);
-  const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -257,16 +256,13 @@ export function BoxingBoy3D() {
             }
             mixerHolder.mixer = mixer;
           }
-          setReady(true);
+          setModelStatus(HERO_FIGHTER, 'ready');
         },
-        (event) => {
-          if (event.total > 0) {
-            setProgress(Math.round((event.loaded / event.total) * 100));
-          }
-        },
+        undefined,
         (error) => {
           console.error('Failed to load jab-cross.glb', error);
           setFailed(true);
+          setModelStatus(HERO_FIGHTER, 'failed');
         },
       );
 
@@ -326,20 +322,10 @@ export function BoxingBoy3D() {
 
   return (
     <div className="boxing-3d-stage" ref={containerRef}>
-      {!ready && !failed && (
-        <div className="boxing-3d-loader">
-          <div className="boxing-3d-loader-glove">🥊</div>
-          <div className="boxing-3d-loader-bar">
-            <div
-              className="boxing-3d-loader-fill"
-              style={{width: `${progress}%`}}
-            />
-          </div>
-          <span className="boxing-3d-loader-text">
-            Loading fighter… {progress}%
-          </span>
-        </div>
-      )}
+      {/*
+       * No inline loader: the page-level <PageLoader /> covers the whole
+       * viewport until this model (and the mascot) are on screen.
+       */}
       {failed && (
         <div className="boxing-3d-loader">
           <span className="boxing-3d-loader-text">
