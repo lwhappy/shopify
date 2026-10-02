@@ -732,7 +732,7 @@ button.reset:hover:not(:has(> *)) {
   align-items: center;
   justify-content: center;
   /* Not full-viewport — clamp so the hero never dwarfs the content below */
-  min-height: clamp(440px, 76vh, 640px);
+  min-height: clamp(340px, 56vh, 470px);
   margin: 0 -1rem;
   padding: 0;
   overflow: hidden;
