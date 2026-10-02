@@ -543,13 +543,23 @@ button.reset:hover:not(:has(> *)) {
   position: relative;
 }
 
+/*
+ * Totals summary pinned to the drawer bottom. It is anchored left/right to
+ * the fixed <aside> (its containing block) so it always spans the drawer's
+ * real width — the old `width: calc(min(var(--aside-width), 100vw) - 2rem)`
+ * assumed a 400px drawer; once the mobile drawer was capped to 86vw the
+ * summary became wider than the drawer and its right side (subtotal value,
+ * Apply buttons, checkout pill) was clipped off-screen on phones.
+ */
 .cart-summary-aside {
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   bottom: 0;
-  padding: 1rem 0 1.25rem;
+  left: 0;
+  padding: 1rem 1rem 1.25rem;
   position: absolute;
-  width: calc(min(var(--aside-width), 100vw) - 2rem);
+  right: 0;
+  width: auto;
 }
 
 /* summary section labels */
