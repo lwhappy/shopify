@@ -34,6 +34,10 @@ export function BoxingBoy3D() {
     let disposed = false;
     let cleanup: (() => void) | undefined;
 
+    // The hero renders noticeably darker on phones (small canvas + heavy
+    // vignette behind it), so the mobile branch lights the scene brighter.
+    const isMobile = window.matchMedia('(max-width: 45em)').matches;
+
     (async () => {
       const THREE = await import('three');
       const {GLTFLoader} = await import('three/examples/jsm/loaders/GLTFLoader.js');
@@ -50,7 +54,7 @@ export function BoxingBoy3D() {
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.0;
+      renderer.toneMappingExposure = isMobile ? 1.22 : 1.0;
       container.appendChild(renderer.domElement);
 
       // ---------- Scene / Camera ----------
@@ -69,9 +73,11 @@ export function BoxingBoy3D() {
       // ---------- Lights ----------
       // Keep total intensity moderate — strong stacked lights wash the
       // baseColor texture out to gray-white (overexposure).
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x1a1a20, 0.55));
+      scene.add(
+        new THREE.HemisphereLight(0xffffff, 0x1a1a20, isMobile ? 0.95 : 0.55),
+      );
 
-      const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+      const keyLight = new THREE.DirectionalLight(0xffffff, isMobile ? 2.1 : 1.5);
       keyLight.position.set(4, 6, 4);
       keyLight.castShadow = true;
       keyLight.shadow.mapSize.set(2048, 2048);
@@ -83,11 +89,11 @@ export function BoxingBoy3D() {
       keyLight.shadow.camera.bottom = -5;
       scene.add(keyLight);
 
-      const rimLight = new THREE.DirectionalLight(0xe10600, 1.3);
+      const rimLight = new THREE.DirectionalLight(0xe10600, isMobile ? 1.6 : 1.3);
       rimLight.position.set(-5, 3, -4);
       scene.add(rimLight);
 
-      const fillLight = new THREE.PointLight(0xffb45e, 0.5, 15);
+      const fillLight = new THREE.PointLight(0xffb45e, isMobile ? 0.9 : 0.5, 15);
       fillLight.position.set(0, 2.5, 3.5);
       scene.add(fillLight);
 
@@ -238,7 +244,6 @@ export function BoxingBoy3D() {
           // On mobile the smaller model makes the fixed world-space offset
           // overshoot — the character ends up half off-screen — so use a
           // gentler nudge there.
-          const isMobile = window.matchMedia('(max-width: 45em)').matches;
           model.position.x -= isMobile ? 0.15 : 0.55;
           model.position.y -= isMobile ? 0.1 : 0.25;
 

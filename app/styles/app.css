@@ -2036,20 +2036,24 @@ button.reset:hover:not(:has(> *)) {
 }
 
 @media (max-width: 48em) {
-  /* Small screens: keep the mascot noticeable but subordinate to the hero —
-   * ~75% of the old footprint. The `right` inset trims the same proportional
-   * slice of transparent canvas (34px at 150px wide -> ~25px at 112px).
+  /* Small screens: kept subordinate to the hero, then scaled up 1.2x from the
+   * 112x142 footprint. The `right` inset trims the same proportional slice of
+   * transparent canvas (~0.228 x width -> 30px at 134px wide).
    */
   .boxing-buddy {
-    width: 112px;
-    height: 142px;
-    right: calc(0.5rem - 25px);
-    bottom: -3px;
+    width: 134px;
+    height: 170px;
+    right: calc(0.5rem - 30px);
+    bottom: -4px;
   }
 
   /* Scale the taunt pill down with the widget so it doesn't overflow the
-   * narrower canvas or dwarf the character. */
+   * narrower canvas or dwarf the character, and park it just above the head:
+   * the camera frames the character with ~5% headroom, so a small negative
+   * offset reads as "floating above him" instead of drifting away.
+   */
   .boxing-buddy-taunt {
+    top: -0.5rem;
     padding: 0.3rem 0.65rem;
     font-size: 0.62rem;
   }
@@ -2064,14 +2068,6 @@ button.reset:hover:not(:has(> *)) {
   .boxing-buddy-stage {
     pointer-events: auto;
     touch-action: manipulation;
-  }
-
-  /*
-   * The taunt bubble sat at 14% of the (short, 190px) mobile widget, which
-   * lands on the character's face. Lift it clear above the character instead.
-   */
-  .boxing-buddy-taunt {
-    top: -2rem;
   }
 }
 
