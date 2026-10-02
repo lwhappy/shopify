@@ -225,11 +225,12 @@ export function BoxingBoy3D() {
           const size = box.getSize(new THREE.Vector3());
           const center = box.getCenter(new THREE.Vector3());
           const maxDim = Math.max(size.x, size.y, size.z);
-          // Mobile hero: render the fighter ~30% smaller so the headline and
-          // CTAs keep the spotlight on small screens (desktop unchanged).
+          // Mobile hero: render the fighter smaller so the headline and CTAs
+          // keep the spotlight on small screens. The hero container height is
+          // fixed by CSS — this only scales the model inside it.
           const targetSize = window.matchMedia('(max-width: 45em)').matches
-            ? 1.5
-            : 2.1;
+            ? 2
+            : 2.7;
           const scale = hasBox && maxDim > 0 ? targetSize / maxDim : 1;
           model.scale.setScalar(scale);
           model.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
