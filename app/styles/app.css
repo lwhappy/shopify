@@ -2065,6 +2065,14 @@ button.reset:hover:not(:has(> *)) {
     pointer-events: auto;
     touch-action: manipulation;
   }
+
+  /*
+   * The taunt bubble sat at 14% of the (short, 190px) mobile widget, which
+   * lands on the character's face. Lift it clear above the character instead.
+   */
+  .boxing-buddy-taunt {
+    top: -2rem;
+  }
 }
 
 /*

@@ -229,8 +229,8 @@ export function BoxingBoy3D() {
           // keep the spotlight on small screens. The hero container height is
           // fixed by CSS — this only scales the model inside it.
           const targetSize = window.matchMedia('(max-width: 45em)').matches
-            ? 2
-            : 2.7;
+            ? 2.6
+            : 3.3;
           const scale = hasBox && maxDim > 0 ? targetSize / maxDim : 1;
           model.scale.setScalar(scale);
           model.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
