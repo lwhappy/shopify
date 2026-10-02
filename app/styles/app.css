@@ -392,7 +392,7 @@ button.reset:hover:not(:has(> *)) {
   display: flex;
   flex-wrap: wrap;
   grid-gap: 1.5rem;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem;
 }
 
 .footer-menu a {
@@ -733,6 +733,7 @@ button.reset:hover:not(:has(> *)) {
   justify-content: center;
   min-height: calc(100vh - var(--header-height));
   margin: 0 -1rem;
+  padding: 0;
   overflow: hidden;
   background:
     radial-gradient(ellipse 80% 60% at 50% 110%, rgba(225, 6, 0, 0.22), transparent 60%),
@@ -904,7 +905,7 @@ button.reset:hover:not(:has(> *)) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
-  padding: 3.5rem 0;
+  padding: 2.25rem 0;
   @media (min-width: 45em) {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -914,7 +915,7 @@ button.reset:hover:not(:has(> *)) {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 14px;
-  padding: 1.75rem 1.5rem;
+  padding: 1.25rem 1.25rem;
   transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
 }
 
@@ -949,7 +950,7 @@ button.reset:hover:not(:has(> *)) {
 * --------------------------------------------------
 */
 .featured-section {
-  padding: 1rem 0 2rem;
+  padding: 0 0 1.5rem;
 }
 
 .featured-collection {
@@ -1012,7 +1013,7 @@ button.reset:hover:not(:has(> *)) {
 
 .section-heading {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .section-eyebrow {
@@ -1031,13 +1032,13 @@ button.reset:hover:not(:has(> *)) {
 }
 
 .recommended-products {
-  padding: 3rem 0 4rem;
+  padding: 1.75rem 0 2.5rem;
 }
 
 .products-loading {
   color: var(--color-muted);
   text-align: center;
-  padding: 3rem 0;
+  padding: 1.5rem 0;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.85rem;
