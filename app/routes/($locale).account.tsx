@@ -46,43 +46,39 @@ export default function AccountLayout() {
   return (
     <div className="account">
       <h1>{heading}</h1>
-      <br />
       <AccountMenu />
-      <br />
-      <br />
       <Outlet context={{customer}} />
     </div>
   );
 }
 
 function AccountMenu() {
-  function isActiveStyle({
-    isActive,
-    isPending,
-  }: {
-    isActive: boolean;
-    isPending: boolean;
-  }) {
-    return {
-      fontWeight: isActive ? 'bold' : undefined,
-      color: isPending ? 'grey' : 'black',
-    };
-  }
-
   return (
-    <nav role="navigation">
-      <NavLink to="/account/orders" style={isActiveStyle}>
-        Orders &nbsp;
+    <nav className="account-nav" role="navigation">
+      <NavLink
+        to="/account/orders"
+        className={({isActive, isPending}) =>
+          'account-nav-link' + (isActive ? ' active' : '') + (isPending ? ' pending' : '')
+        }
+      >
+        Orders
       </NavLink>
-      &nbsp;|&nbsp;
-      <NavLink to="/account/profile" style={isActiveStyle}>
-        &nbsp; Profile &nbsp;
+      <NavLink
+        to="/account/profile"
+        className={({isActive, isPending}) =>
+          'account-nav-link' + (isActive ? ' active' : '') + (isPending ? ' pending' : '')
+        }
+      >
+        Profile
       </NavLink>
-      &nbsp;|&nbsp;
-      <NavLink to="/account/addresses" style={isActiveStyle}>
-        &nbsp; Addresses &nbsp;
+      <NavLink
+        to="/account/addresses"
+        className={({isActive, isPending}) =>
+          'account-nav-link' + (isActive ? ' active' : '') + (isPending ? ' pending' : '')
+        }
+      >
+        Addresses
       </NavLink>
-      &nbsp;|&nbsp;
       <Logout />
     </nav>
   );
@@ -91,7 +87,7 @@ function AccountMenu() {
 function Logout() {
   return (
     <Form className="account-logout" method="POST" action="/account/logout">
-      &nbsp;<button type="submit">Sign out</button>
+      <button type="submit">Sign out</button>
     </Form>
   );
 }

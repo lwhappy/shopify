@@ -88,10 +88,9 @@ export default function AccountProfile() {
   return (
     <div className="account-profile">
       <h2>My profile</h2>
-      <br />
       <Form method="PUT">
-        <legend>Personal information</legend>
         <fieldset>
+          <legend>Personal information</legend>
           <label htmlFor="firstName">First name</label>
           <input
             id="firstName"
@@ -121,12 +120,12 @@ export default function AccountProfile() {
               <small>{action.error}</small>
             </mark>
           </p>
-        ) : (
-          <br />
-        )}
-        <button type="submit" disabled={state !== 'idle'}>
-          {state !== 'idle' ? 'Updating' : 'Update'}
-        </button>
+        ) : null}
+        <div style={{marginTop: '1.25rem'}}>
+          <button type="submit" disabled={state !== 'idle'}>
+            {state !== 'idle' ? 'Updating' : 'Update'}
+          </button>
+        </div>
       </Form>
     </div>
   );

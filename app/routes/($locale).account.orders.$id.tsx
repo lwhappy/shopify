@@ -1,4 +1,4 @@
-import {redirect, useLoaderData} from 'react-router';
+import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/account.orders.$id';
 import {Money, Image} from '@shopify/hydrogen';
 import type {
@@ -83,12 +83,14 @@ export default function OrderRoute() {
   } = useLoaderData<typeof loader>();
   return (
     <div className="account-order">
+      <p className="order-back-link">
+        <Link to="/account/orders">← Back to orders</Link>
+      </p>
       <h2>Order {order.name}</h2>
-      <p>Placed on {new Date(order.processedAt!).toDateString()}</p>
-      {order.confirmationNumber && (
-        <p>Confirmation: {order.confirmationNumber}</p>
-      )}
-      <br />
+      <p>
+        Placed on {new Date(order.processedAt!).toDateString()}
+        {order.confirmationNumber ? ` · Confirmation: ${order.confirmationNumber}` : ''}
+      </p>
       <div>
         <table>
           <thead>
@@ -112,9 +114,6 @@ export default function OrderRoute() {
                 <th scope="row" colSpan={3}>
                   <p>Discounts</p>
                 </th>
-                <th scope="row">
-                  <p>Discounts</p>
-                </th>
                 <td>
                   {discountPercentage ? (
                     <span>-{discountPercentage}% OFF</span>
@@ -128,9 +127,6 @@ export default function OrderRoute() {
               <th scope="row" colSpan={3}>
                 <p>Subtotal</p>
               </th>
-              <th scope="row">
-                <p>Subtotal</p>
-              </th>
               <td>
                 <Money data={order.subtotal!} />
               </td>
@@ -139,9 +135,6 @@ export default function OrderRoute() {
               <th scope="row" colSpan={3}>
                 Tax
               </th>
-              <th scope="row">
-                <p>Tax</p>
-              </th>
               <td>
                 <Money data={order.totalTax!} />
               </td>
@@ -149,9 +142,6 @@ export default function OrderRoute() {
             <tr>
               <th scope="row" colSpan={3}>
                 Total
-              </th>
-              <th scope="row">
-                <p>Total</p>
               </th>
               <td>
                 <Money data={order.totalPrice!} />
@@ -184,7 +174,6 @@ export default function OrderRoute() {
           </div>
         </div>
       </div>
-      <br />
       <p>
         <a target="_blank" href={order.statusPageUrl} rel="noreferrer">
           View Order Status →

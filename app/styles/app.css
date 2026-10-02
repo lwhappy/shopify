@@ -598,6 +598,7 @@ button.reset:hover:not(:has(> *)) {
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: 8px;
+  box-sizing: border-box;
   color: var(--color-text);
   flex: 1;
   font-family: inherit;
@@ -1390,32 +1391,171 @@ button.reset:hover:not(:has(> *)) {
 
 /*
 * --------------------------------------------------
-* routes/account
+* routes/account — dark themed account section
 * --------------------------------------------------
 */
+.account {
+  margin: 0 auto;
+  max-width: 60rem;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.account h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin: 0 0 1.5rem;
+}
+
+/* --- top tab navigation --- */
+.account-nav {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.account-nav-link {
+  border-bottom: 2px solid transparent;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: -1px;
+  padding: 0.6rem 0.9rem;
+  text-decoration: none;
+}
+
+.account-nav-link:hover {
+  color: var(--color-text);
+}
+
+.account-nav-link.active {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.account-nav-link.pending {
+  opacity: 0.5;
+}
 
 .account-logout {
   display: inline-block;
+  margin-left: auto;
 }
 
-/*
-* --------------------------------------------------
-* Order Search Form - Minimal & Responsive
-* --------------------------------------------------
-*/
+.account-logout button {
+  background: transparent;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.6rem 0.9rem;
+}
+
+.account-logout button:hover {
+  color: var(--color-accent-hover);
+}
+
+/* --- shared form controls (reset.css gives every input a black border +
+       margins that are invisible/messy on dark — override inside .account) */
+.account fieldset {
+  border: none;
+  box-sizing: border-box;
+  display: block;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.account label {
+  color: var(--color-muted);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin: 1rem 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.account input:not([type='checkbox']):not([type='radio']) {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  min-height: 2.6rem;
+  padding: 0 0.8rem;
+  width: 100%;
+}
+
+.account input:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.account mark {
+  background: rgba(225, 6, 0, 0.12);
+  border-radius: 6px;
+  color: var(--color-accent-hover);
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.4rem 0.7rem;
+}
+
+.account button[type='submit'],
+.order-search-buttons button {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  min-height: 2.6rem;
+  padding: 0 1.5rem;
+  transition: border-color 150ms, color 150ms;
+}
+
+.account button[type='submit']:hover:not(:disabled),
+.order-search-buttons button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.account button[type='submit']:disabled,
+.order-search-buttons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* --- orders: search/filter card --- */
 .order-search-form {
   margin-bottom: 1.5rem;
 }
 
 .order-search-fieldset {
-  border: 1px solid #e5e5e5;
-  border-radius: 4px;
-  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.25rem;
 }
 
 .order-search-legend {
-  font-weight: 600;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   padding: 0 0.5rem;
+  text-transform: uppercase;
 }
 
 .order-search-active {
@@ -1426,12 +1566,12 @@ button.reset:hover:not(:has(> *)) {
 
 .order-search-inputs {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
   margin: 0.25rem 0 1rem;
   grid-template-columns: 1fr;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 40em) {
   .order-search-inputs {
     grid-template-columns: 1fr 1fr;
   }
@@ -1439,16 +1579,346 @@ button.reset:hover:not(:has(> *)) {
 
 .order-search-input {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 1rem;
 }
 
 .order-search-buttons {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+/* --- orders: list cards --- */
+.order-card {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+  padding: 1.1rem 1.25rem;
+  transition: border-color 150ms;
+}
+
+.order-card:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border));
+}
+
+.order-card-number {
+  color: var(--color-text);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.order-card-number:hover {
+  color: var(--color-accent-hover);
+}
+
+.order-card-date,
+.order-card-confirmation {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin: 0.15rem 0 0;
+}
+
+.order-card-meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.order-badge {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.7rem;
+  text-transform: uppercase;
+}
+
+.order-badge.status-PAID,
+.order-badge.status-FINANCED {
+  border-color: color-mix(in srgb, var(--color-gold) 60%, transparent);
+  color: var(--color-gold);
+}
+
+.order-badge.status-FULFILLED {
+  border-color: rgba(61, 190, 109, 0.5);
+  color: #3dbe6d;
+}
+
+.order-badge.status-UNFULFILLED,
+.order-badge.status-PENDING {
+  border-color: rgba(255, 158, 27, 0.45);
+  color: #ff9e1b;
+}
+
+.order-card-total {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.order-card-view {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.order-card-view:hover {
+  color: var(--color-accent-hover);
+}
+
+/* --- orders: empty state --- */
+.orders-empty {
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.orders-empty-title {
+  color: var(--color-muted);
+  margin: 0 0 1rem;
+}
+
+.orders-empty-link {
+  background: var(--color-accent);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.7rem 1.6rem;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.orders-empty-link:hover {
+  background: var(--color-accent-hover);
+  color: #fff;
+}
+
+/* --- profile / addresses panels --- */
+.account-profile h2,
+.account-addresses h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0 0 1rem;
+}
+
+.account-profile fieldset,
+.account-addresses fieldset {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.25rem 1.25rem 1.25rem;
+}
+
+.account-profile legend,
+.account-addresses legend {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 0 0.5rem;
+  text-transform: uppercase;
+}
+
+.account-profile Form {
+  max-width: 26rem;
+}
+
+.account-addresses Form {
+  margin-bottom: 1.5rem;
+  max-width: 32rem;
+}
+
+.account-addresses .address-section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.account-addresses hr {
+  border-top-color: var(--color-border);
+  margin: 2rem 0;
+}
+
+.account-addresses input[type='checkbox'] {
+  accent-color: var(--color-accent);
+  margin-right: 0.5rem;
+}
+
+.account-addresses div:has(> input[type='checkbox']) {
+  align-items: center;
+  display: flex;
+  margin-top: 1.25rem;
+}
+
+.account-addresses div:has(> input[type='checkbox']) label {
+  color: var(--color-text);
+  font-size: 0.9rem;
+  letter-spacing: normal;
+  margin: 0;
+  text-transform: none;
+}
+
+.account-addresses button[type='submit'] + button[type='submit'] {
+  margin-left: 0.75rem;
+}
+
+.account-addresses button[formmethod='DELETE'] {
+  background: transparent;
+  border-color: rgba(225, 6, 0, 0.45);
+  color: var(--color-accent-hover);
+}
+
+/* --- order detail --- */
+.account-order h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.account-order > p {
+  color: var(--color-muted);
+}
+
+.account-order table {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.25rem 0;
+  min-width: 25rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* table wrapper scrolls horizontally instead of the page */
+.account-order > div > div:first-child {
+  overflow-x: auto;
+}
+
+.account-order th,
+.account-order td {
+  padding: 0.8rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.account-order thead th {
+  background: var(--color-surface-2);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.account-order tbody tr + tr td {
+  border-top: 1px solid var(--color-border);
+}
+
+.account-order tbody td:nth-child(2),
+.account-order tbody td:nth-child(3),
+.account-order tbody td:nth-child(4) {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.account-order thead th:nth-child(2),
+.account-order thead th:nth-child(3),
+.account-order thead th:nth-child(4) {
+  text-align: right;
+}
+
+.account-order tfoot th,
+.account-order tfoot td {
+  border-top: 1px solid var(--color-border);
+}
+
+.account-order tfoot tr:last-child th,
+.account-order tfoot tr:last-child td {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.account-order tfoot p {
+  margin: 0;
+}
+
+.account-order tbody td > div {
+  align-items: center;
+  display: flex;
+  gap: 0.9rem;
+}
+
+.account-order tbody td img {
+  border-radius: 8px;
+  flex-shrink: 0;
+  height: 64px !important;
+  object-fit: cover;
+  width: 64px !important;
+}
+
+.account-order tbody td p {
+  font-weight: 700;
+  margin: 0;
+}
+
+.account-order tbody td small {
+  color: var(--color-muted);
+}
+
+.account-order > div {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 40em) {
+  .account-order > div {
+    /* give the (nowrap-priced) table a bit more room than the info column */
+    grid-template-columns: 1.3fr 1fr;
+  }
+}
+
+.account-order h3 {
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.account-order address {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text);
+  font-style: normal;
+  line-height: 1.55;
+  padding: 1rem 1.25rem;
+}
+
+.account-order address p {
+  margin: 0;
+}
+
+.account-order > p a,
+.account-order .order-back-link {
+  color: var(--color-text);
+  font-weight: 700;
 }
 
 /*
